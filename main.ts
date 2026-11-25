@@ -38,6 +38,16 @@ function main(): void {
   if (readBack !== ROAST) {
     throw new Error("read-back: bytes on disk differ from roast text");
   }
+
+  // Raw-byte read-back: the string round-trip above could mask an encoding
+  // fault (invalid UTF-8 decodes to U+FFFD and still compares unequal, but
+  // only a byte-exact check proves the file holds exactly the roast bytes
+  // the gate will hash and the judge will read).
+  const readBackBytes = readFileSync(outPath);
+  const expectedBytes = Buffer.from(ROAST, "utf8");
+  if (!readBackBytes.equals(expectedBytes)) {
+    throw new Error("read-back: raw bytes on disk differ from roast bytes");
+  }
 }
 
 main();
